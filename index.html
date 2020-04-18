@@ -11,10 +11,12 @@
     </head>
     <body onload="startGame()">
         <script>
+            var score;
             var spaceShip;
             var listOfAliens = [];
             function startGame(){
                 gameArea.start();
+                score = new scoreComponent("20px", "Arial", "yellow", 200, 30, "text", 0);
                 spaceShip = new spaceShip(15, "yellow", 150, 485);
                 spawnAliens(5, 10);
             }
@@ -80,6 +82,22 @@
                 }
             }
 
+            function scoreComponent(pixelSize, font, colour, x, y, type, value){
+                this.type = type;
+                this.font = pixelSize + " " + font;
+                this.colour = colour;
+                this.x = x;
+                this.y = y;
+                this.value = value;
+                
+                this.update = function(){
+                    ctx = gameArea.context;
+                    ctx.font = this.font;
+                    ctx.fillStyle = this.colour;
+                    ctx.fillText(this.text, this.x, this.y);
+                }
+            }
+
             function spaceShip(radius, colour, x, y){
                 this.radius = radius;
                 this.colour = colour; 
@@ -119,7 +137,6 @@
             }
 
             function updateGameArea(){
-
                 listOfAliens.forEach(function(alien){
                     if (spaceShip.crashWith(alien)){
                         gameArea.stop();
@@ -127,6 +144,10 @@
                 });
 
                 gameArea.clear();
+
+                score.text = "SCORE: " + score.value;
+                score.update();
+
                 spaceShip.speedX = 0;
                 spaceShip.speedY = 0;
                 if (gameArea.key && gameArea.key == 37){
