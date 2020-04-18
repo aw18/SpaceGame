@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            canvas {
+                border:1px solid #000000;
+                background-color: #040220;
+            }
+            </style>
+    </head>
+    <body onload="startGame()">
+        <script>
+            var spaceShip;
+            var listOfAliens = [];
+            function startGame(){
+                gameArea.start();
+                spaceShip = new spaceShip(15, "yellow", 150, 485);
+                spawnAliens(5, 10);
+            }
+
+            function spawnAliens(numberOfAliens, length){
+
+                for (let i = 0; i < numberOfAliens; i++){
+                    var x = Math.floor(Math.random() * gameArea.canvas.width);
+                    var y = Math.floor(Math.random() * (gameArea.canvas.height / 5));
+
+                    if (x - length < 0)
+                    {
+                        x += length;
+                        console.log("added " + length + " => " + x);
+                    }
+
+                    if (x + length > gameArea.canvas.width)
+                    {
+                        x -= length;
+                        console.log("subtracted " + length + " => " + x);
+                    }
+
+                    console.log("x: " + x);
+                    var alien = new component(i, length, length, "orange", x, y);
+                    listOfAliens.push(alien);
+                }
+            }
+
+            let gameArea = {
+                canvas : document.createElement("canvas"),
+                start : function() {
+                    this.canvas.width = 300;
+                    this.canvas.height = 500;
+                    this.context = this.canvas.getContext("2d");
+                    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                    // every 20th milliseconds, 50 times per second
+                    this.interval = setInterval(updateGameArea, 20);
+                },
+                clear : function() {
+                    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+            }
+
+            function component(id, width, height, color, x, y) {
+                this.id = id;
+                this.width = width;
+                this.height = height;
+                this.x = x;
+                this.y = y;
+                this.update = function(){
+                    ctx = gameArea.context;
+                    ctx.fillStyle = color;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+            }
+
+            function spaceShip(radius, colour, x, y){
+                this.radius = radius;
+                this.colour = colour; 
+                this.x = x;
+                this.y = y;
+
+                this.update = function(){
+                    ctx = gameArea.context;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
+                    ctx.fillStyle = this.colour;
+                    ctx.fill();
+                    ctx.lineWidth = 5;
+                    ctx.strokeStyle = "#003300";
+                    ctx.stroke();
+                }
+            }
+
+            function updateGameArea(){
+                gameArea.clear();
+                spaceShip.update();
+                listOfAliens.forEach(function(alien){
+                    alien.y += Math.random();
+                    // alien.x += Math.random();
+                    alien.update();
+                });              
+            }
+
+        </script>
+        <h1> Space Game </h1>
+    </body>
+</html>
