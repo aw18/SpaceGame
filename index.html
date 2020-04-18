@@ -52,6 +52,12 @@
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
                     // every 20th milliseconds, 50 times per second
                     this.interval = setInterval(updateGameArea, 20);
+                    window.addEventListener('keydown', function(e){
+                        gameArea.key = e.keyCode;
+                    });
+                    window.addEventListener('keyup', function(e){
+                        gameArea.key = false;
+                    })
                 },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -76,6 +82,8 @@
                 this.colour = colour; 
                 this.x = x;
                 this.y = y;
+                this.speedX = 0;
+                this.speedY = 0;
 
                 this.update = function(){
                     ctx = gameArea.context;
@@ -87,11 +95,34 @@
                     ctx.strokeStyle = "#003300";
                     ctx.stroke();
                 }
+
+                this.newPos = function(){
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                }
             }
 
             function updateGameArea(){
                 gameArea.clear();
+
+                spaceShip.speedX = 0;
+                spaceShip.speedY = 0;
+                if (gameArea.key && gameArea.key == 37){
+                    spaceShip.speedX = -1;
+                }
+                if (gameArea.key && gameArea.key == 39) {
+                    spaceShip.speedX = 1; 
+                }
+                if (gameArea.key && gameArea.key == 38) {
+                    spaceShip.speedY = -1; 
+                }
+                if (gameArea.key && gameArea.key == 40) {
+                    spaceShip.speedY = 1; 
+                }
+
+                spaceShip.newPos();
                 spaceShip.update();
+                
                 listOfAliens.forEach(function(alien){
                     alien.y += Math.random();
                     // alien.x += Math.random();
