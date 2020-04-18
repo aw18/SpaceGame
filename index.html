@@ -61,6 +61,9 @@
                 },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                },
+                stop : function() {
+                    clearInterval(this.interval);
                 }
             }
 
@@ -100,11 +103,30 @@
                     this.x += this.speedX;
                     this.y += this.speedY;
                 }
+
+                this.crashWith = function(otherobj){
+                    var dx = this.x - otherobj.x; 
+                    var dy = this.y - otherobj.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < this.radius + (otherobj.width / 2) ){
+                        // collision detected
+                        return true;
+                    }
+
+                    return false;
+                }
             }
 
             function updateGameArea(){
-                gameArea.clear();
 
+                listOfAliens.forEach(function(alien){
+                    if (spaceShip.crashWith(alien)){
+                        gameArea.stop();
+                    }
+                });
+
+                gameArea.clear();
                 spaceShip.speedX = 0;
                 spaceShip.speedY = 0;
                 if (gameArea.key && gameArea.key == 37){
@@ -113,19 +135,18 @@
                 if (gameArea.key && gameArea.key == 39) {
                     spaceShip.speedX = 1; 
                 }
-                if (gameArea.key && gameArea.key == 38) {
-                    spaceShip.speedY = -1; 
-                }
-                if (gameArea.key && gameArea.key == 40) {
-                    spaceShip.speedY = 1; 
-                }
+                // if (gameArea.key && gameArea.key == 38) {
+                //     spaceShip.speedY = -1; 
+                // }
+                // if (gameArea.key && gameArea.key == 40) {
+                //     spaceShip.speedY = 1; 
+                // }
 
                 spaceShip.newPos();
                 spaceShip.update();
                 
                 listOfAliens.forEach(function(alien){
                     alien.y += Math.random();
-                    // alien.x += Math.random();
                     alien.update();
                 });              
             }
