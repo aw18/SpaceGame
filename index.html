@@ -14,11 +14,15 @@
             var score;
             var spaceShip;
             var listOfAliens = [];
+            var background;
+
             function startGame(){
                 gameArea.start();
-                score = new scoreComponent("20px", "Arial", "yellow", 200, 30, "text", 0);
+                score = new scoreComponent("20px", "Arial", "yellow", 200, 30, 0);
                 spaceShip = new spaceShip(15, "yellow", 150, 485);
-                spawnAliens(5, 10);
+                background = new backgroundComponent(gameArea.canvas.width, 
+                gameArea.canvas.height, "milkyway_bg.jpg", 0, 0);
+                spawnAliens(5, 50);
             }
 
             function spawnAliens(numberOfAliens, length){
@@ -40,7 +44,8 @@
                     }
 
                     console.log("x: " + x);
-                    var alien = new component(i, length, length, "orange", x, y);
+                    // var alien = new component(i, length, length, "orange", x, y);
+                    var alien = new component(i, length, length, "transp-pinkorb.png", "transp-pinkorb-darker.png", x, y, 'image');
                     listOfAliens.push(alien);
                 }
             }
@@ -53,6 +58,7 @@
                     this.context = this.canvas.getContext("2d");
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
                     // every 20th milliseconds, 50 times per second
+                    this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 20);
                     window.addEventListener('keydown', function(e){
                         gameArea.key = e.keyCode;
@@ -69,21 +75,53 @@
                 }
             }
 
-            function component(id, width, height, color, x, y) {
+            function component(id, width, height, color, color2, x, y, type) {
                 this.id = id;
                 this.width = width;
                 this.height = height;
                 this.x = x;
                 this.y = y;
+                this.type = type;
+                if (type == "image")
+                {
+                    this.toggle = true;
+                    this.image1 = new Image();
+                    this.image2 = new Image();
+                    this.image1.src = color;
+                    this.image2.src = color2;
+                    this.currentImage = this.image1;
+                }
+
                 this.update = function(){
                     ctx = gameArea.context;
-                    ctx.fillStyle = color;
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    if (type == "image"){
+
+                        if ((gameArea.frameNo % 10) == 0){
+                            if (this.toggle){
+                                this.currentImage = this.image1;
+                                this.toggle = false;
+                                console.log("id:" + id + " - image1 - frameNo: " + gameArea.frameNo);
+                            }
+                            else{
+                                this.currentImage = this.image2;
+                                this.toggle = true;
+                                console.log("id:" + id + " - image2 - frameNo: " + gameArea.frameNo);
+                            }
+                        }
+
+                        ctx.drawImage(this.currentImage, 
+                        this.x, 
+                        this.y,
+                        this.width, this.height);
+                    }
+                    else{
+                        ctx.fillStyle = color;
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                    }
                 }
             }
 
-            function scoreComponent(pixelSize, font, colour, x, y, type, value){
-                this.type = type;
+            function scoreComponent(pixelSize, font, colour, x, y, value){
                 this.font = pixelSize + " " + font;
                 this.colour = colour;
                 this.x = x;
@@ -95,6 +133,25 @@
                     ctx.font = this.font;
                     ctx.fillStyle = this.colour;
                     ctx.fillText(this.text, this.x, this.y);
+                }
+            }
+
+            function backgroundComponent(width, height, url, x, y){
+                this.width = width;
+                this.height = height;
+                this.url = url;
+                this.x = x;
+                this.y = y;
+                this.image = new Image();
+                this.image.src = url;
+
+                this.update = function(){
+                    ctx = gameArea.context;
+                    ctx.drawImage(this.image,
+                    this.x, 
+                    this.y,
+                    this.width, 
+                    this.height);
                 }
             }
 
@@ -145,8 +202,12 @@
 
                 gameArea.clear();
 
+                gameArea.frameNo += 1;
+                
                 score.text = "SCORE: " + score.value;
                 score.update();
+
+                background.update();
 
                 spaceShip.speedX = 0;
                 spaceShip.speedY = 0;
