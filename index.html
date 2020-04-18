@@ -60,12 +60,20 @@
                     // every 20th milliseconds, 50 times per second
                     this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 20);
+
+                    // keyboard arrows controller
                     window.addEventListener('keydown', function(e){
                         gameArea.key = e.keyCode;
                     });
                     window.addEventListener('keyup', function(e){
                         gameArea.key = false;
                     })
+
+                    // touchscreen controllers
+                    window.addEventListener('touchmove', function(e){
+                        gameArea.x = e.touches[0].screenX;
+                        gameArea.y = e.touches[0].screenY;
+                    });
                 },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -203,12 +211,13 @@
                 gameArea.clear();
 
                 gameArea.frameNo += 1;
-                
+
                 score.text = "SCORE: " + score.value;
                 score.update();
 
                 background.update();
 
+                // keyboard controllers updating
                 spaceShip.speedX = 0;
                 spaceShip.speedY = 0;
                 if (gameArea.key && gameArea.key == 37){
@@ -223,6 +232,12 @@
                 // if (gameArea.key && gameArea.key == 40) {
                 //     spaceShip.speedY = 1; 
                 // }
+
+                // touchscreen controllers updating 
+                if (gameArea.x && gameArea.y){
+                    spaceShip.x = gameArea.x;
+                    spaceShip.y = gameArea.y;
+                }
 
                 spaceShip.newPos();
                 spaceShip.update();
