@@ -253,6 +253,11 @@
                             listOfAliens.splice(listOfAliens.indexOf(alien), 1);
                         }
                     }
+
+                    // check alien hits bottom of cavnas
+                    if (alien.y + alien.radius > gameArea.canvas.height){
+                        gameArea.stop();
+                    }
                 });
 
                 gameArea.clear();
