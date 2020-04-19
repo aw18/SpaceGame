@@ -102,8 +102,10 @@
             // Variables
             // ------------------------------------------
             var listOfAliens = [];
+            var alienSize = 120;
             var score;
             var spaceShip;
+            var spaceShipSize = 100;
             var background;
 
             let gameArea = {
@@ -181,17 +183,18 @@
                     0);
                 
                 spaceShip = new spaceShipComponent(
-                    15, 
-                    "yellow", 
+                    spaceShipSize, 
+                    "spaceship-transparent.png", 
                     Math.floor(gameArea.canvas.width/2), 
-                    gameArea.canvas.height - 20);
+                    gameArea.canvas.height - spaceShipSize,
+                    "image");
         
                 background = new backgroundComponent(
                     gameArea.canvas.width, 
                     gameArea.canvas.height, 
                     "milkyway_bg.jpg", 0, 0);
 
-                spawnAliens(5, 50);
+                spawnAliens(5, alienSize);
             }
 
             function updateGameArea(){
@@ -331,23 +334,38 @@
                 }
             }
 
-            function spaceShipComponent(radius, colour, x, y){
+            function spaceShipComponent(radius, colour, x, y, type){
                 this.radius = radius;
                 this.colour = colour; 
                 this.x = x;
                 this.y = y;
                 this.speedX = 0;
                 this.speedY = 0;
+                if (type == "image"){
+                    this.image = new Image();
+                    this.image.src = colour;
+                }
 
                 this.update = function(){
                     ctx = gameArea.context;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
-                    ctx.fillStyle = this.colour;
-                    ctx.fill();
-                    ctx.lineWidth = 5;
-                    ctx.strokeStyle = "#003300";
-                    ctx.stroke();
+
+                    if (type == "image"){
+                        ctx.drawImage(
+                            this.image,
+                            this.x, 
+                            this.y,
+                            this.radius,
+                            this.radius);
+                    }
+                    else{
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
+                        ctx.fillStyle = this.colour;
+                        ctx.fill();
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = "#003300";
+                        ctx.stroke();
+                    }
                 }
 
                 this.newPos = function(){
