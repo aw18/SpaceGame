@@ -248,6 +248,7 @@
                             // alien.type = "NONE";
 
                             // remove alien and bullet
+                            score.value += 1;
                             delete dictOfBullets[bulletId];
                             listOfAliens.splice(listOfAliens.indexOf(alien), 1);
                         }
@@ -261,7 +262,6 @@
                 background.update();
 
                 // set score
-                score.text = "SCORE: " + score.value;
                 score.update();
 
                 // keyboard controllers updating
@@ -389,9 +389,11 @@
                 this.x = x;
                 this.y = y;
                 this.value = value;
+                this.text = "SCORE: " + this.value;
                 
                 this.update = function(){
                     ctx = gameArea.context;
+                    this.text = "SCORE: " + this.value;
                     ctx.font = this.font;
                     ctx.fillStyle = this.colour;
                     ctx.fillText(this.text, this.x, this.y);
