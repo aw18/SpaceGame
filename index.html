@@ -101,6 +101,8 @@
             // ------------------------------------------
             // Variables
             // ------------------------------------------
+            var listOfBullets = [];
+            var bulletSize = 10;
             var listOfAliens = [];
             var alienSize = 120;
             var score;
@@ -202,6 +204,10 @@
                 spawnAliens(5, alienSize);
             }
 
+            function checkBulletAlienCollision(){
+
+            }
+
             function updateGameArea(){
                 listOfAliens.forEach(function(alien){
                     if (spaceShip.crashWith(alien)){
@@ -224,36 +230,65 @@
                 spaceShip.speedY = 0;
                 if (gameArea.key && gameArea.key == 37){
                     spaceShip.speedX = -1;
+                    spaceShip.shoot(gameArea.frameNo, -1);
                 }
                 if (gameArea.key && gameArea.key == 39) {
                     spaceShip.speedX = 1; 
+                    spaceShip.shoot(gameArea.frameNo, 1);
                 }
-                // if (gameArea.key && gameArea.key == 38) {
-                //     spaceShip.speedY = -1; 
-                // }
-                // if (gameArea.key && gameArea.key == 40) {
-                //     spaceShip.speedY = 1; 
-                // }
 
                 // touchscreen controllers updating 
+                // spaceship shoot a bullet each frame
                 if (gameArea.touchscreenX != -1){
                     spaceShip.x = gameArea.touchscreenX;
-                    // spaceShip.y = gameArea.y;
+                    spaceShip.shoot(gameArea.frameNo, gameArea.touchscreenX);
                 }
 
+                // calculate spaceship new position
                 spaceShip.newPos();
                 spaceShip.update();
                 
                 listOfAliens.forEach(function(alien){
                     alien.y += Math.random();
                     alien.update();
-                });              
+                });
+
+                listOfBullets.forEach(function(bullet){
+                    bullet.y -= 1;
+                    bullet.update();
+                    bullet.speedX = 0;
+                });     
             }
 
 
             // ------------------------------------------
             // Constructors
             // ------------------------------------------
+            function bulletComponent(id, radius, color, x, y){
+                this.id = id; 
+                this.radius = radius;
+                this.color = color;
+                this.x = x;
+                this.y = y;
+                this.speedX = 0;
+                this.speedY = 1;
+
+                this.newPos = function(){
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                }
+
+                this.update = function(){
+                    ctx = gameArea.context;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
+                    ctx.fillStyle = this.colour;
+                    ctx.fill();
+                    ctx.lineWidth = 5;
+                    ctx.strokeStyle = "#003300";
+                    ctx.stroke();
+                }
+            }
 
             function component(id, width, height, color, color2, x, y, type) {
                 this.id = id;
@@ -389,6 +424,12 @@
                     }
 
                     return false;
+                }
+
+                this.shoot = function(id, speedX){
+                    var bullet = new bulletComponent(id, bulletSize, "green", this.x, this.y);
+                    bullet.speedX = speedX;
+                    listOfBullets.push(bullet);
                 }
             }
 
