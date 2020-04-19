@@ -110,6 +110,7 @@
 
             let gameArea = {
                 canvas : document.createElement("canvas"),
+                restartButton : document.getElementById("restartBtn"),
                 init : function() {
                     this.canvas.width = window.innerWidth;
                     this.canvas.height = window.innerHeight;
@@ -133,6 +134,12 @@
                     // touchscreen controllers
                     window.addEventListener('touchstart', onTouchHandler, {passive: false});
                     window.addEventListener('touchmove', onTouchHandler, {passive: false});
+
+                    // add touchscreen sense on restart button
+                    this.restartButton.addEventListener('touchstart', function(e){
+                        e.preventDefault();
+                        restartGame();
+                    }, {passive: false});
                 },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -148,9 +155,7 @@
                 
                 if (e.touches){
                     e.preventDefault();
-                    var x = e.touches[0].pageX;
-                    gameArea.touchscreenX = x;
-                    console.log("pagex: " + x + " screenx:" + e.touches[0].screenX);
+                    gameArea.touchscreenX = e.touches[0].pageX;
                 }
             }
 
