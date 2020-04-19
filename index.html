@@ -38,25 +38,83 @@
                 border:1px solid #000000;
                 background-color: #040220;
             }
+
+            .button {
+                background-color: Transparent;
+                background-repeat:no-repeat;
+                border: none;
+                cursor:pointer;
+                overflow: hidden;
+                outline:none;
+                position: absolute; 
+                top:25%; 
+                margin-left: 20%;
+                color: yellow;
+                font-size: 30px;
+                padding: 20px 10px;
+                display: inline-block;
+                text-align: left;
+                transition-duration: 0.6s;
+                border-radius: 12px;
+            }
+
+            .restartbtn {
+                display: none;
+            }
+
+            .button span {
+                cursor: pointer;
+                display: inline-block;
+                position: relative;
+                transition: 0.5s;
+                padding: 30px 0px;
+            }
+
+            .button span:after {
+                content: '\1F680';
+                position: absolute;
+                opacity: 0;
+                top: 25%;
+                right: -30px;
+                transition: 0.5s;
+            }
+
+            .button:hover span {
+                padding-right: 50px;
+            }
+
+            .button:hover span:after {
+                opacity: 1;
+                right: 0;
+            }
+
+            button:hover {
+                color: greenyellow;
+                background-color: green;
+                opacity: .9;
+            }
         </style>
     </head>
     <body onload="startGame()">
+        <button id="restartBtn" class="button restartbtn" onclick="restartGame()"><span>Play Again? </span></button>
         <script>
             // ------------------------------------------
             // Variables
             // ------------------------------------------
+            var listOfAliens = [];
             var score;
             var spaceShip;
-            var listOfAliens = [];
             var background;
 
             let gameArea = {
                 canvas : document.createElement("canvas"),
-                start : function() {
+                init : function() {
                     this.canvas.width = window.innerWidth;
                     this.canvas.height = window.innerHeight;
                     this.context = this.canvas.getContext("2d");
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                }, 
+                start : function() {
                     // every 20th milliseconds, 50 times per second
                     this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 20);
@@ -79,6 +137,8 @@
                 },
                 stop : function() {
                     clearInterval(this.interval);
+                    // show restart button 
+                    document.getElementById("restartBtn").style.display = "block";
                 }
             }
 
@@ -95,28 +155,42 @@
             // ------------------------------------------
             // Main Functions
             // ------------------------------------------
+            function restartGame(){
+                // hide restart button
+                document.getElementById("restartBtn").style.display = "none";
+                clearGame();
+                startGame();
+            }
+
+            function clearGame(){
+                gameArea.stop();
+                gameArea.clear();
+                listOfAliens = [];
+            }
 
             function startGame(){
+                gameArea.init();
                 gameArea.start();
 
                 score = new scoreComponent(
                     "20px", 
                     "Arial", 
                     "yellow", 
-                    gameArea.canvas.width - (gameArea.canvas.width / 5), 
+                    gameArea.canvas.width - (gameArea.canvas.width / 4), 
                     30, 
                     0);
                 
-                spaceShip = new spaceShip(
+                spaceShip = new spaceShipComponent(
                     15, 
                     "yellow", 
                     Math.floor(gameArea.canvas.width/2), 
                     gameArea.canvas.height - 20);
-
+        
                 background = new backgroundComponent(
                     gameArea.canvas.width, 
                     gameArea.canvas.height, 
                     "milkyway_bg.jpg", 0, 0);
+
                 spawnAliens(5, 50);
             }
 
@@ -232,6 +306,10 @@
                     ctx.fillStyle = this.colour;
                     ctx.fillText(this.text, this.x, this.y);
                 }
+
+                this.clear = function(){
+                    this.value = 0;
+                }
             }
 
             function backgroundComponent(width, height, url, x, y){
@@ -253,7 +331,7 @@
                 }
             }
 
-            function spaceShip(radius, colour, x, y){
+            function spaceShipComponent(radius, colour, x, y){
                 this.radius = radius;
                 this.colour = colour; 
                 this.x = x;
