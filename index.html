@@ -177,6 +177,7 @@
             // ------------------------------------------
             // Main Functions
             // ------------------------------------------
+            // prereq: gameArea.stop() has been called already
             function restartGame(){
                 // hide restart button
                 document.getElementById("restartBtn").style.display = "none";
@@ -185,7 +186,6 @@
             }
 
             function clearGame(){
-                gameArea.stop();
                 gameArea.clear();
                 listOfAliens = [];
             }
