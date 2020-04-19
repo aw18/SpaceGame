@@ -102,9 +102,11 @@
             // Variables
             // ------------------------------------------
             var listOfBullets = [];
-            var bulletSize = 10;
+            var bulletSize = 5;
             var bullet_initX;
             var bullet_initY;
+            var bulletColour = "lightgreen";
+            var bulletBorder = "#00bf00";
             var listOfAliens = [];
             var alienSize = 120;
             var score;
@@ -252,7 +254,9 @@
                 spaceShip.update();
 
                 // spaceship shoot a bullet each frame 
-                spaceShip.shoot(gameArea.frameNo, spaceShip.x);
+                if ((gameArea.frameNo % 30) == 0){
+                    spaceShip.shoot(gameArea.frameNo, spaceShip.x);
+                }
                 
                 listOfAliens.forEach(function(alien){
                     alien.y += Math.random();
@@ -290,7 +294,7 @@
                     ctx.fillStyle = this.color;
                     ctx.fill();
                     ctx.lineWidth = 2;
-                    ctx.strokeStyle = "#00bf00";
+                    ctx.strokeStyle = bulletBorder;
                     ctx.stroke();
                 }
             }
@@ -435,7 +439,7 @@
                     var bullet = new bulletComponent(
                         id, 
                         bulletSize, 
-                        "lightgreen", 
+                        bulletColour, 
                         bullet_initX,
                         bullet_initY);
                     bullet.x = bulletX;
