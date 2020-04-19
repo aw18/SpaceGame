@@ -101,7 +101,7 @@
             // ------------------------------------------
             // Variables
             // ------------------------------------------
-            var listOfBullets = [];
+            var dictOfBullets = {};
             var bulletSize = 5;
             var bullet_initX;
             var bullet_initY;
@@ -128,7 +128,8 @@
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
 
                     spaceShip_initX = bullet_initX = Math.floor(gameArea.canvas.width/2);
-                    spaceShip_initY = bullet_initY = gameArea.canvas.height - spaceShipSize;
+                    spaceShip_initY = gameArea.canvas.height - (spaceShipSize/2);
+                    bullet_initY = gameArea.canvas.height - spaceShipSize;
                 }, 
                 start : function() {
                     // every 20th milliseconds, 50 times per second
@@ -215,14 +216,35 @@
                 spawnAliens(5, alienSize);
             }
 
-            function checkBulletAlienCollision(){
+            function IsBulletAlienCollide(bullet, alien){
+                var dx = bullet.x - alien.x;
+                var dy = bullet.y - alien.y;
+                var distance = Math.sqrt(dx * dx + dy * dy);
 
+                if (distance < bullet.radius + alien.radius){
+                    return true;
+                }
+
+                return false;
             }
 
             function updateGameArea(){
+
                 listOfAliens.forEach(function(alien){
+
+                    // check for spaceship and alien collision
                     if (spaceShip.crashWith(alien)){
                         gameArea.stop();
+                    }
+
+                    // check bullet and alien collision
+                    for (var bulletId in dictOfBullets){
+                        var bullet = dictOfBullets[bulletId];
+                        if (IsBulletAlienCollide(bullet, alien)){
+                            // remove alien and bullet
+                            delete dictOfBullets[bulletId];
+                            listOfAliens.splice(listOfAliens.indexOf(alien), 1);
+                        }
                     }
                 });
 
@@ -265,10 +287,10 @@
                     alien.update();
                 });
 
-                listOfBullets.forEach(function(bullet){
-                    bullet.newPos();
-                    bullet.update();
-                });     
+                for(var id in dictOfBullets){
+                    dictOfBullets[id].newPos();
+                    dictOfBullets[id].update();
+                } 
             }
 
 
@@ -335,10 +357,11 @@
                             }
                         }
 
-                        ctx.drawImage(this.currentImage, 
-                        this.x, 
-                        this.y,
-                        this.width, this.height);
+                        ctx.drawImage(
+                            this.currentImage, 
+                            this.x, 
+                            this.y,
+                            this.width, this.height);
                     }
                     else{
                         ctx.fillStyle = color;
@@ -388,8 +411,8 @@
             function spaceShipComponent(radius, colour, x, y, type){
                 this.radius = radius;
                 this.colour = colour; 
-                this.x = x;
-                this.y = y;
+                this.x = x; // center of image
+                this.y = y; // center of image
                 this.speedX = 0;
                 this.speedY = 0;
                 if (type == "image"){
@@ -401,10 +424,13 @@
                     ctx = gameArea.context;
 
                     if (type == "image"){
+                        this.imageX = this.x - (this.radius/2); // upper left corner
+                        this.imageY = this.y - (this.radius/2); // upper left corner
+
                         ctx.drawImage(
                             this.image,
-                            this.x - spaceShipSize/2, 
-                            this.y,
+                            this.imageX, 
+                            this.imageY,
                             this.radius,
                             this.radius);
                     }
@@ -445,7 +471,8 @@
                         bullet_initX,
                         bullet_initY);
                     bullet.x = bulletX;
-                    listOfBullets.push(bullet);
+                    
+                    dictOfBullets[id] = bullet;
                 }
             }
 
