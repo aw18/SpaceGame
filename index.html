@@ -71,8 +71,8 @@
                     })
 
                     // touchscreen controllers
-                    window.addEventListener('touchstart', touchHandler, false);
-                    window.addEventListener('touchmove', touchHandler, false);
+                    window.addEventListener('touchstart', onTouchHandler, {passive: false});
+                    window.addEventListener('touchmove', onTouchHandler, {passive: false});
                 },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -82,8 +82,10 @@
                 }
             }
 
-            function touchHandler(e){
+            function onTouchHandler(e){
+                
                 if (e.touches){
+                    e.preventDefault();
                     var x = e.touches[0].pageX;
                     gameArea.touchscreenX = x;
                     console.log("pagex: " + x + " screenx:" + e.touches[0].screenX);
