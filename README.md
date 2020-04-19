@@ -6,6 +6,7 @@ To play: https://aw18.github.io/SpaceGame/
 
 ## Release history
 | Date | Release version |
+|------|-----------------|
 | 2020-04-19 | Space game version 1.0 |
 
 ### Version 1.0 release notes
