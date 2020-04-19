@@ -1,65 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <style>
+
+        <!--
+            The meta viewport tag tells mobile browsers to disable user scaling 
+            and to render at full size rather than shrink the page down.
+            The subsequent apple- prefixed meta tags allow the game to be 
+            bookmarked. On the iPhone, bookmarked apps do not display the toolbar 
+            at the bottom of the page, thus freeing up valuable real estate. 
+            https://www.smashingmagazine.com/2012/10/design-your-own-mobile-game/
+        -->
+        <meta name="viewport" content="width=device-width, 
+    user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+
+        <style type="text/css">
+            /* body { 
+                margin: 0; 
+                padding: 0; 
+                background: #000;
+            }
+            canvas { 
+                display: block; 
+                margin: 0 auto; 
+                background: #fff; 
+            } */
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+            }
             canvas {
                 border:1px solid #000000;
                 background-color: #040220;
             }
-            </style>
+        </style>
     </head>
     <body onload="startGame()">
         <script>
+            // ------------------------------------------
+            // Variables
+            // ------------------------------------------
             var score;
             var spaceShip;
             var listOfAliens = [];
             var background;
 
-            function startGame(){
-                gameArea.start();
-                score = new scoreComponent("20px", "Arial", "yellow", 200, 30, 0);
-                spaceShip = new spaceShip(15, "yellow", 150, 485);
-                background = new backgroundComponent(gameArea.canvas.width, 
-                gameArea.canvas.height, "milkyway_bg.jpg", 0, 0);
-                spawnAliens(5, 50);
-            }
-
-            function spawnAliens(numberOfAliens, length){
-
-                for (let i = 0; i < numberOfAliens; i++){
-                    var x = Math.floor(Math.random() * gameArea.canvas.width);
-                    var y = Math.floor(Math.random() * (gameArea.canvas.height / 5));
-
-                    if (x - length < 0)
-                    {
-                        x += length;
-                        console.log("added " + length + " => " + x);
-                    }
-
-                    if (x + length > gameArea.canvas.width)
-                    {
-                        x -= length;
-                        console.log("subtracted " + length + " => " + x);
-                    }
-
-                    console.log("x: " + x);
-                    // var alien = new component(i, length, length, "orange", x, y);
-                    var alien = new component(i, length, length, "transp-pinkorb.png", "transp-pinkorb-darker.png", x, y, 'image');
-                    listOfAliens.push(alien);
-                }
-            }
-
             let gameArea = {
                 canvas : document.createElement("canvas"),
                 start : function() {
-                    this.canvas.width = 300;
-                    this.canvas.height = 500;
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                     this.context = this.canvas.getContext("2d");
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
                     // every 20th milliseconds, 50 times per second
                     this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 20);
+                    this.touchscreenX = -1;
 
                     // keyboard arrows controller
                     window.addEventListener('keydown', function(e){
@@ -70,10 +71,8 @@
                     })
 
                     // touchscreen controllers
-                    window.addEventListener('touchmove', function(e){
-                        gameArea.x = e.touches[0].screenX;
-                        gameArea.y = e.touches[0].screenY;
-                    });
+                    window.addEventListener('touchstart', touchHandler);
+                    window.addEventListener('touchmove', touchHandler);
                 },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -82,6 +81,94 @@
                     clearInterval(this.interval);
                 }
             }
+
+            function touchHandler(e){
+                if (e.touches){
+                    var x = e.touches[0].pageX;
+                    console.log("pagex: " + x + " screenx:" + e.touches[0].screenX);
+                }
+            }
+
+            // ------------------------------------------
+            // Main Functions
+            // ------------------------------------------
+
+            function startGame(){
+                gameArea.start();
+
+                score = new scoreComponent(
+                    "20px", 
+                    "Arial", 
+                    "yellow", 
+                    gameArea.canvas.width - (gameArea.canvas.width / 5), 
+                    30, 
+                    0);
+                
+                spaceShip = new spaceShip(
+                    15, 
+                    "yellow", 
+                    Math.floor(gameArea.canvas.width/2), 
+                    gameArea.canvas.height - 20);
+
+                background = new backgroundComponent(
+                    gameArea.canvas.width, 
+                    gameArea.canvas.height, 
+                    "milkyway_bg.jpg", 0, 0);
+                spawnAliens(5, 50);
+            }
+
+            function updateGameArea(){
+                listOfAliens.forEach(function(alien){
+                    if (spaceShip.crashWith(alien)){
+                        gameArea.stop();
+                    }
+                });
+
+                gameArea.clear();
+                gameArea.frameNo += 1;
+
+                // set background
+                background.update();
+
+                // set score
+                score.text = "SCORE: " + score.value;
+                score.update();
+
+                // keyboard controllers updating
+                spaceShip.speedX = 0;
+                spaceShip.speedY = 0;
+                if (gameArea.key && gameArea.key == 37){
+                    spaceShip.speedX = -1;
+                }
+                if (gameArea.key && gameArea.key == 39) {
+                    spaceShip.speedX = 1; 
+                }
+                // if (gameArea.key && gameArea.key == 38) {
+                //     spaceShip.speedY = -1; 
+                // }
+                // if (gameArea.key && gameArea.key == 40) {
+                //     spaceShip.speedY = 1; 
+                // }
+
+                // touchscreen controllers updating 
+                if (gameArea.touchscreenX != -1){
+                    spaceShip.x = gameArea.touchscreenX;
+                    // spaceShip.y = gameArea.y;
+                }
+
+                spaceShip.newPos();
+                spaceShip.update();
+                
+                listOfAliens.forEach(function(alien){
+                    alien.y += Math.random();
+                    alien.update();
+                });              
+            }
+
+
+            // ------------------------------------------
+            // Constructors
+            // ------------------------------------------
 
             function component(id, width, height, color, color2, x, y, type) {
                 this.id = id;
@@ -108,12 +195,12 @@
                             if (this.toggle){
                                 this.currentImage = this.image1;
                                 this.toggle = false;
-                                console.log("id:" + id + " - image1 - frameNo: " + gameArea.frameNo);
+                                // console.log("id:" + id + " - image1 - frameNo: " + gameArea.frameNo);
                             }
                             else{
                                 this.currentImage = this.image2;
                                 this.toggle = true;
-                                console.log("id:" + id + " - image2 - frameNo: " + gameArea.frameNo);
+                                // console.log("id:" + id + " - image2 - frameNo: " + gameArea.frameNo);
                             }
                         }
 
@@ -201,54 +288,34 @@
                 }
             }
 
-            function updateGameArea(){
-                listOfAliens.forEach(function(alien){
-                    if (spaceShip.crashWith(alien)){
-                        gameArea.stop();
+            // ------------------------------------------
+            // Helper Functions
+            // ------------------------------------------
+
+            function spawnAliens(numberOfAliens, length){
+                for (let i = 0; i < numberOfAliens; i++){
+                    var x = Math.floor(Math.random() * gameArea.canvas.width);
+                    var y = Math.floor(Math.random() * (gameArea.canvas.height / 5));
+
+                    if (x - length < 0)
+                    {
+                        x += length;
+                        console.log("added " + length + " => " + x);
                     }
-                });
 
-                gameArea.clear();
+                    if (x + length > gameArea.canvas.width)
+                    {
+                        x -= length;
+                        console.log("subtracted " + length + " => " + x);
+                    }
 
-                gameArea.frameNo += 1;
-
-                score.text = "SCORE: " + score.value;
-                score.update();
-
-                background.update();
-
-                // keyboard controllers updating
-                spaceShip.speedX = 0;
-                spaceShip.speedY = 0;
-                if (gameArea.key && gameArea.key == 37){
-                    spaceShip.speedX = -1;
+                    console.log("x: " + x);
+                    // var alien = new component(i, length, length, "orange", x, y);
+                    var alien = new component(i, length, length, "transp-pinkorb.png", "transp-pinkorb-darker.png", x, y, 'image');
+                    listOfAliens.push(alien);
                 }
-                if (gameArea.key && gameArea.key == 39) {
-                    spaceShip.speedX = 1; 
-                }
-                // if (gameArea.key && gameArea.key == 38) {
-                //     spaceShip.speedY = -1; 
-                // }
-                // if (gameArea.key && gameArea.key == 40) {
-                //     spaceShip.speedY = 1; 
-                // }
-
-                // touchscreen controllers updating 
-                if (gameArea.x && gameArea.y){
-                    spaceShip.x = gameArea.x;
-                    spaceShip.y = gameArea.y;
-                }
-
-                spaceShip.newPos();
-                spaceShip.update();
-                
-                listOfAliens.forEach(function(alien){
-                    alien.y += Math.random();
-                    alien.update();
-                });              
             }
 
         </script>
-        <h1> Space Game </h1>
     </body>
 </html>
