@@ -96,6 +96,7 @@
         </style>
     </head>
     <body onload="startGame()">
+
         <button id="restartBtn" class="button restartbtn" onclick="restartGame()"><span>Play Again? </span></button>
         <script>
             // ------------------------------------------
@@ -110,7 +111,7 @@
             var bulletColour = "lightgreen"; // green
             var bulletBorder = "#00bf00";
             var listOfAliens = [];
-            var alienSize = 120;
+            var alienSize = 120; // alien width and height
             var score;
             var spaceShip;
             var spaceShipSize = 100;
@@ -241,6 +242,11 @@
                     for (var bulletId in dictOfBullets){
                         var bullet = dictOfBullets[bulletId];
                         if (IsBulletAlienCollide(bullet, alien)){
+
+                            // change colour - debug 
+                            // bullet.color = "red";
+                            // alien.type = "NONE";
+
                             // remove alien and bullet
                             delete dictOfBullets[bulletId];
                             listOfAliens.splice(listOfAliens.indexOf(alien), 1);
@@ -323,13 +329,12 @@
                 }
             }
 
-            function component(id, width, height, color, color2, x, y, type) {
+            function alienComponent(id, radius, color, color2, x, y, type) {
                 this.id = id;
-                this.width = width;
-                this.height = height;
-                this.x = x;
-                this.y = y;
+                this.x = x; // center of image
+                this.y = y; // center of image
                 this.type = type;
+                this.radius = radius;
                 if (type == "image")
                 {
                     this.toggle = true;
@@ -342,8 +347,10 @@
 
                 this.update = function(){
                     ctx = gameArea.context;
-                    if (type == "image"){
+                    if (this.type == "image"){
 
+                        this.imageX = this.x - this.radius;
+                        this.imageY = this.y - this.radius;
                         if ((gameArea.frameNo % 10) == 0){
                             if (this.toggle){
                                 this.currentImage = this.image1;
@@ -359,13 +366,19 @@
 
                         ctx.drawImage(
                             this.currentImage, 
-                            this.x, 
-                            this.y,
-                            this.width, this.height);
+                            this.imageX, 
+                            this.imageY, 
+                            this.radius * 2, 
+                            this.radius * 2);
                     }
                     else{
-                        ctx.fillStyle = color;
-                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
+                        ctx.fillStyle = this.color;
+                        ctx.fill();
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = "#003300";
+                        ctx.stroke();
                     }
                 }
             }
@@ -453,9 +466,9 @@
                 this.crashWith = function(otherobj){
                     var dx = this.x - otherobj.x; 
                     var dy = this.y - otherobj.y;
-                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    var distance = Math.sqrt((dx * dx) + (dy * dy));
 
-                    if (distance < this.radius + (otherobj.width / 2) ){
+                    if (distance < this.radius + otherobj.radius){
                         // collision detected
                         return true;
                     }
@@ -480,26 +493,35 @@
             // Helper Functions
             // ------------------------------------------
 
-            function spawnAliens(numberOfAliens, length){
+            // alienSize is full width and height of image
+            function spawnAliens(numberOfAliens, alienSize){
                 for (let i = 0; i < numberOfAliens; i++){
-                    var x = Math.floor(Math.random() * gameArea.canvas.width);
-                    var y = Math.floor(Math.random() * (gameArea.canvas.height / 5));
+                    var x = Math.floor(Math.random() * gameArea.canvas.width); // center of alien 
+                    var y = Math.floor(Math.random() * (gameArea.canvas.height / 5)); // center of alien
+                    var radius = alienSize / 2;
 
-                    if (x - length < 0)
+                    if (x - radius < 0)
                     {
-                        x += length;
+                        x += radius;
                         //console.log("added " + length + " => " + x);
                     }
 
-                    if (x + length > gameArea.canvas.width)
+                    if (x + radius > gameArea.canvas.width)
                     {
-                        x -= length;
+                        x -= radius;
                         //console.log("subtracted " + length + " => " + x);
                     }
 
                     //console.log("x: " + x);
-                    // var alien = new component(i, length, length, "orange", x, y);
-                    var alien = new component(i, length, length, "transp-pinkorb.png", "transp-pinkorb-darker.png", x, y, 'image');
+                    // var alien = new alienComponent(i, length, length, "orange", x, y);
+                    var alien = new alienComponent(i, 
+                        radius, 
+                        "transp-pinkorb.png", 
+                        "transp-pinkorb-darker.png", x, y, 'image');
+                    // var alien = new alienComponent(i, 
+                    //     radius, 
+                    //     "pinkorb.gif", 
+                    //     "pinkorb.gif", x, y, 'image');
                     listOfAliens.push(alien);
                 }
             }
