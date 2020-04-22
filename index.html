@@ -122,6 +122,7 @@
 
             let gameArea = {
                 canvas : document.createElement("canvas"),
+                sound : document.createElement("audio"),
                 restartButton : document.getElementById("restartBtn"),
                 init : function() {
                     this.canvas.width = window.innerWidth;
@@ -134,9 +135,9 @@
                     bullet_initY = gameArea.canvas.height - spaceShipSize;
                 }, 
                 start : function() {
-                    // every 20th milliseconds, 50 times per second
+                    // every 5th milliseconds, 200 times per second
                     this.frameNo = 0;
-                    this.interval = setInterval(updateGameArea, 20);
+                    this.interval = setInterval(updateGameArea, 5);
                     this.touchscreenX = -1;
 
                     // keyboard arrows controller
@@ -188,7 +189,8 @@
 
             function clearGame(){
                 gameArea.clear();
-                listOfAliens = [];
+                listOfAliens.length = 0;
+                score.clear();
             }
 
             function startGame(){
@@ -231,6 +233,11 @@
             }
 
             function updateGameArea(){
+
+                // check no more aliens exists
+                if (listOfAliens.length == 0){
+                    gameArea.stop();
+                }
 
                 listOfAliens.forEach(function(alien){
 
@@ -524,8 +531,8 @@
                     // var alien = new alienComponent(i, length, length, "orange", x, y);
                     var alien = new alienComponent(i, 
                         radius, 
-                        "transp-pinkorb.png", 
-                        "transp-pinkorb-darker.png", x, y, 'image');
+                        "pinkorb.gif", 
+                        "pinkorb.gif", x, y, 'image');
                     // var alien = new alienComponent(i, 
                     //     radius, 
                     //     "pinkorb.gif", 
