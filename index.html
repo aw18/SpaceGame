@@ -94,11 +94,60 @@
                 background-color: green;
                 opacity: .9;
             }
+
+            /*deprecated*/
+            /*.winbanner {
+                display: none;
+                padding-right: 50px;
+                font: "20px Georgia";
+                display: inline-block;
+                position: absolute;
+                color: red;
+                top: 25%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }*/
+
+            #winbanner {
+                display: none;
+                padding-right: 50px;
+                font: "20px Arial";
+                display: inline-block;
+                position: relative;
+                color: red;
+            }
+
+            #losebanner{
+                display: none;
+                padding-right: 50px;
+                font: "20px Arial";
+                display: inline-block;
+                position: relative;
+                color: red;
+            }
+
+            p {
+                margin: 0;
+                padding: 0;
+            }
         </style>
     </head>
     <body onload="startGame()">
 
-        <button id="restartBtn" class="button restartbtn" onclick="restartGame()"><span>Play Again? </span></button>
+        <span id="winbanner" class="winbanner">
+            <p id="gameResultText">You Win!</p>
+            <p id="userPromptText">Play Again?</p>
+        </span>
+
+        <span id="losebanner" class="losebanner">
+            <p id="gameResultText">You Lose.</p>
+            <p id="userPromptText">Try Again?</p>
+        </span>
+
+        <button id="restartBtn" class="button restartbtn" onclick="restartGame()">
+            <!--<span style="border-width: 2px; border-color: red;">hello</span>-->
+        </button>
+        
         <script>
             // ------------------------------------------
             // Variables
@@ -119,6 +168,9 @@
             var spaceShip_initX;
             var spaceShip_initY;
             var background;
+            var winText = "You Win! Play Again?";
+            var loseText = "You lose. Try Again?";
+            var skipUpdateGameArea = false;
 
             let gameArea = {
                 canvas : document.createElement("canvas"),
@@ -135,6 +187,7 @@
                     bullet_initY = gameArea.canvas.height - spaceShipSize;
                 }, 
                 start : function() {
+                    skipUpdateGameArea = false;
                     // every 5th milliseconds, 200 times per second
                     this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 5);
@@ -163,6 +216,7 @@
                 },
                 stop : function() {
                     clearInterval(this.interval);
+                    skipUpdateGameArea = true;
                     // show restart button 
                     document.getElementById("restartBtn").style.display = "block";
                 }
@@ -182,7 +236,7 @@
             // prereq: gameArea.stop() has been called already
             function restartGame(){
                 // hide restart button
-                document.getElementById("restartBtn").style.display = "none";
+                clearBanner();
                 clearGame();
                 startGame();
             }
@@ -232,84 +286,113 @@
                 return false;
             }
 
+            function displayBanner(isWin){
+                if (isWin){
+                    var xmlStr = new XMLSerializer().serializeToString(document.getElementById("winbanner"));
+                    gameArea.restartButton.insertAdjacentHTML("afterbegin", xmlStr);
+                }
+                else{
+                    var xmlStr = new XMLSerializer().serializeToString(document.getElementById("losebanner"));
+                    gameArea.restartButton.insertAdjacentHTML("afterbegin", xmlStr);
+                }
+            }
+
+            function clearBanner(){
+                // remove all children in restartBtn
+                var restartBtn = document.getElementById("restartBtn");
+                restartBtn.style.display = "none";
+
+                for (let ind = 0; ind < restartBtn.children.length; ind++){
+                    restartBtn.removeChild(restartBtn.children[ind]);
+                }
+            }
+
             function updateGameArea(){
 
-                // check no more aliens exists
-                if (listOfAliens.length == 0){
-                    gameArea.stop();
-                }
-
-                listOfAliens.forEach(function(alien){
-
-                    // check for spaceship and alien collision
-                    if (spaceShip.crashWith(alien)){
+                if (!skipUpdateGameArea)
+                {
+                    // check no more aliens exists
+                    if (listOfAliens.length == 0){
+                        // gameArea.restartButton.innerHTML = winText;
+                        displayBanner(true);
                         gameArea.stop();
                     }
 
-                    // check bullet and alien collision
-                    for (var bulletId in dictOfBullets){
-                        var bullet = dictOfBullets[bulletId];
-                        if (IsBulletAlienCollide(bullet, alien)){
+                    listOfAliens.forEach(function(alien){
 
-                            // change colour - debug 
-                            // bullet.color = "red";
-                            // alien.type = "NONE";
-
-                            // remove alien and bullet
-                            score.value += 1;
-                            delete dictOfBullets[bulletId];
-                            listOfAliens.splice(listOfAliens.indexOf(alien), 1);
+                        // check for spaceship and alien collision
+                        if (spaceShip.crashWith(alien)){
+                            displayBanner(false);
+                            gameArea.stop();
                         }
+
+                        // check bullet and alien collision
+                        for (var bulletId in dictOfBullets){
+                            var bullet = dictOfBullets[bulletId];
+                            if (IsBulletAlienCollide(bullet, alien)){
+
+                                // change colour - debug 
+                                // bullet.color = "red";
+                                // alien.type = "NONE";
+
+                                // remove alien and bullet
+                                score.value += 1;
+                                delete dictOfBullets[bulletId];
+                                listOfAliens.splice(listOfAliens.indexOf(alien), 1);
+                            }
+                        }
+
+                        // check alien hits bottom of cavnas
+                        if (alien.y + alien.radius > gameArea.canvas.height){
+                            // gameArea.restartButton.innerHTML = loseText;
+                            displayBanner(false);
+                            gameArea.stop();
+                        }
+                    });
+
+                    gameArea.clear();
+                    gameArea.frameNo += 1;
+
+                    // set background
+                    background.update();
+
+                    // set score
+                    score.update();
+
+                    // keyboard controllers updating
+                    spaceShip.speedX = 0;
+                    spaceShip.speedY = 0;
+                    if (gameArea.key && gameArea.key == 37){
+                        spaceShip.speedX = -1;
+                    }
+                    if (gameArea.key && gameArea.key == 39) {
+                        spaceShip.speedX = 1; 
                     }
 
-                    // check alien hits bottom of cavnas
-                    if (alien.y + alien.radius > gameArea.canvas.height){
-                        gameArea.stop();
+                    // touchscreen controllers updating 
+                    if (gameArea.touchscreenX != -1){
+                        spaceShip.x = gameArea.touchscreenX;
                     }
-                });
 
-                gameArea.clear();
-                gameArea.frameNo += 1;
+                    // calculate spaceship new position
+                    spaceShip.newPos();
+                    spaceShip.update();
 
-                // set background
-                background.update();
+                    // spaceship shoot a bullet each frame 
+                    if ((gameArea.frameNo % 30) == 0){
+                        spaceShip.shoot(gameArea.frameNo, spaceShip.x);
+                    }
+                    
+                    listOfAliens.forEach(function(alien){
+                        alien.y += Math.random();
+                        alien.update();
+                    });
 
-                // set score
-                score.update();
-
-                // keyboard controllers updating
-                spaceShip.speedX = 0;
-                spaceShip.speedY = 0;
-                if (gameArea.key && gameArea.key == 37){
-                    spaceShip.speedX = -1;
+                    for(var id in dictOfBullets){
+                        dictOfBullets[id].newPos();
+                        dictOfBullets[id].update();
+                    } 
                 }
-                if (gameArea.key && gameArea.key == 39) {
-                    spaceShip.speedX = 1; 
-                }
-
-                // touchscreen controllers updating 
-                if (gameArea.touchscreenX != -1){
-                    spaceShip.x = gameArea.touchscreenX;
-                }
-
-                // calculate spaceship new position
-                spaceShip.newPos();
-                spaceShip.update();
-
-                // spaceship shoot a bullet each frame 
-                if ((gameArea.frameNo % 30) == 0){
-                    spaceShip.shoot(gameArea.frameNo, spaceShip.x);
-                }
-                
-                listOfAliens.forEach(function(alien){
-                    alien.y += Math.random();
-                    alien.update();
-                });
-
-                for(var id in dictOfBullets){
-                    dictOfBullets[id].newPos();
-                    dictOfBullets[id].update();
-                } 
             }
 
 
@@ -531,8 +614,8 @@
                     // var alien = new alienComponent(i, length, length, "orange", x, y);
                     var alien = new alienComponent(i, 
                         radius, 
-                        "transp-pinkorb.gif", 
-                        "transp-pinkorb-darker.gif", x, y, 'image');
+                        "transp-pinkorb.png", 
+                        "transp-pinkorb-darker.png", x, y, 'image');
                     // var alien = new alienComponent(i, 
                     //     radius, 
                     //     "pinkorb.gif", 
